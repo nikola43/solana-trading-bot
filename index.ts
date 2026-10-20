@@ -50,7 +50,6 @@ import {
 import { version } from './package.json';
 import { WarpTransactionExecutor } from './transactions/warp-transaction-executor';
 import { JitoTransactionExecutor } from './transactions/jito-rpc-transaction-executor';
-import { TpuTransactionExecutor } from './transactions/tpu-transaction-executor';
 
 const connection = new Connection(RPC_ENDPOINT, {
   wsEndpoint: RPC_WEBSOCKET_ENDPOINT,
@@ -85,7 +84,7 @@ function printDetails(wallet: Keypair, quoteToken: Token, bot: Bot) {
 
   logger.info(`Simulate transactions: ${SIMULATE_TX}`);
   logger.info(
-    `Using ${TRANSACTION_EXECUTOR} executer: ${bot.isWarp || bot.isJito || bot.isTpu || (TRANSACTION_EXECUTOR === 'default' ? true : false)}`,
+    `Using ${TRANSACTION_EXECUTOR} executer: ${bot.isWarp || bot.isJito || (TRANSACTION_EXECUTOR === 'default' ? true : false)}`,
   );
   if (bot.isWarp || bot.isJito) {
     logger.info(`${TRANSACTION_EXECUTOR} fee: ${CUSTOM_FEE}`);
@@ -157,14 +156,12 @@ const runListener = async () => {
       txExecutor = new JitoTransactionExecutor(CUSTOM_FEE, connection);
       break;
     }
-    case 'ypu': {
-      txExecutor = new TpuTransactionExecutor();
-      break;
-    }
-    default: {
+    case 'default': {
       txExecutor = new DefaultTransactionExecutor(connection);
       break;
     }
+    default:
+      throw new Error(`Unsupported transaction executor: ${TRANSACTION_EXECUTOR}`);
   }
 
   const wallet = getWallet(PRIVATE_KEY.trim());

@@ -32,7 +32,11 @@ export const PRE_LOAD_EXISTING_MARKETS = retrieveEnvVariable('PRE_LOAD_EXISTING_
 export const CACHE_NEW_MARKETS = retrieveEnvVariable('CACHE_NEW_MARKETS', logger) === 'true';
 export const TRANSACTION_EXECUTOR = retrieveEnvVariable('TRANSACTION_EXECUTOR', logger);
 export const CUSTOM_FEE = retrieveEnvVariable('CUSTOM_FEE', logger);
-export const SIMULATE_TX = retrieveEnvVariable('SIMULATE_TX', logger) === 'true';
+const simulateTx = process.env.SIMULATE_TX ?? 'false';
+if (simulateTx !== 'true' && simulateTx !== 'false') {
+  throw new Error('SIMULATE_TX must be true or false');
+}
+export const SIMULATE_TX = simulateTx === 'true';
 
 // Buy
 export const AUTO_BUY_DELAY = Number(retrieveEnvVariable('AUTO_BUY_DELAY', logger));
@@ -56,6 +60,7 @@ export const FILTER_CHECK_INTERVAL = Number(retrieveEnvVariable('FILTER_CHECK_IN
 export const FILTER_CHECK_DURATION = Number(retrieveEnvVariable('FILTER_CHECK_DURATION', logger));
 export const CONSECUTIVE_FILTER_MATCHES = Number(retrieveEnvVariable('CONSECUTIVE_FILTER_MATCHES', logger));
 export const CHECK_IF_MUTABLE = retrieveEnvVariable('CHECK_IF_MUTABLE', logger) === 'true';
+export const CHECK_IF_SOCIALS = retrieveEnvVariable('CHECK_IF_SOCIALS', logger) === 'true';
 export const CHECK_IF_MINT_IS_RENOUNCED = retrieveEnvVariable('CHECK_IF_MINT_IS_RENOUNCED', logger) === 'true';
 export const CHECK_IF_FREEZABLE = retrieveEnvVariable('CHECK_IF_FREEZABLE', logger) === 'true';
 export const CHECK_IF_BURNED = retrieveEnvVariable('CHECK_IF_BURNED', logger) === 'true';

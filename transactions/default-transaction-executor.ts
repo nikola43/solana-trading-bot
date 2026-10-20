@@ -9,42 +9,27 @@ import { TransactionExecutor } from './transaction-executor.interface';
 import { logger } from '../helpers';
 
 export class DefaultTransactionExecutor implements TransactionExecutor {
-  constructor(private readonly connection: Connection) { }
+  constructor(private readonly connection: Connection) {}
 
   public async executeAndConfirm(
     transaction: VersionedTransaction,
     payer: Keypair,
     latestBlockhash: BlockhashWithExpiryBlockHeight,
-    simulate: boolean
-  ): Promise<{ confirmed: boolean; signature?: string }> {
+  ): Promise<{ confirmed: boolean; signature?: string, error?: string }> {
     logger.debug('Executing transaction...');
-    const signature = await this.execute(transaction, payer, simulate);
+    const signature = await this.execute(transaction);
 
     logger.debug({ signature }, 'Confirming transaction...');
-    return this.confirm(signature, latestBlockhash, simulate);
+    return this.confirm(signature, latestBlockhash);
   }
 
-  private async execute(transaction: Transaction | VersionedTransaction, signer?: Keypair, simulate: boolean = false) {
-    if (simulate) {
-      const simulateTx = transaction instanceof VersionedTransaction
-        ? await this.connection.simulateTransaction(transaction as VersionedTransaction)
-        : await this.connection.simulateTransaction(transaction as Transaction,[signer!]);
-
-      logger.debug({ simulateTx }, 'Simulated transaction');
-      return simulateTx.value.err ? 'ERROR' : "SUCCESS"
-    }
-
+  private async execute(transaction: Transaction | VersionedTransaction) {
     return this.connection.sendRawTransaction(transaction.serialize(), {
       preflightCommitment: this.connection.commitment,
     });
   }
 
-  private async confirm(signature: string, latestBlockhash: BlockhashWithExpiryBlockHeight, simulate: boolean = false) {
-
-    if (simulate) {
-      return { confirmed: true, signature };
-    }
-
+  private async confirm(signature: string, latestBlockhash: BlockhashWithExpiryBlockHeight) {
     const confirmation = await this.connection.confirmTransaction(
       {
         signature,

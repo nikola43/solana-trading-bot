@@ -15,14 +15,13 @@ import { Currency, CurrencyAmount } from '@raydium-io/raydium-sdk';
 export class WarpTransactionExecutor implements TransactionExecutor {
   private readonly warpFeeWallet = new PublicKey('WARPzUMPnycu9eeCZ95rcAUxorqpBqHndfV3ZP5FSyS');
 
-  constructor(private readonly warpFee: string) { }
+  constructor(private readonly warpFee: string) {}
 
   public async executeAndConfirm(
     transaction: VersionedTransaction,
     payer: Keypair,
     latestBlockhash: BlockhashWithExpiryBlockHeight,
-    simulate: boolean
-  ): Promise<{ confirmed: boolean; signature?: string }> {
+  ): Promise<{ confirmed: boolean; signature?: string; error?: string }> {
     logger.debug('Executing transaction...');
 
     try {
@@ -42,7 +41,7 @@ export class WarpTransactionExecutor implements TransactionExecutor {
       const warpFeeTx = new VersionedTransaction(warpFeeMessage);
       warpFeeTx.sign([payer]);
 
-      const response = await axios.post<{ confirmed: boolean; signature: string, error?: string }>(
+      const response = await axios.post<{ confirmed: boolean; signature: string; error?: string }>(
         'https://tx.warp.id/transaction/execute',
         {
           transactions: [bs58.encode(warpFeeTx.serialize()), bs58.encode(transaction.serialize())],
